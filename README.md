@@ -4,7 +4,7 @@
 
 Overview
 ---
-[![alt text](./title_image.jpg)]
+![alt text](./title_image.jpg)
 This repository contains my submission for the Advanced Lane Finding Project, which is part of the curriculum for term 1 of the Udacity Self-Driving Car Nanodegree Program. The goal of this project is to write a software pipeline to identify the lane boundaries in a video from a front-facing camera on a car.
 
 The steps of this project are the following:
@@ -43,7 +43,7 @@ The steps of this project are the following:
 My project includes the following files:
 * [proj4.py](./proj4.py) -- contains the script to create and train the model
 * [advanced_lane_finding_3kernel.mp4](./advanced_lane_finding_3kernel.mp4) -- video showing my output for the input video called project_video.mp4
-[advanced_lane_findingchallenge.mp4](./advanced_lane_finding_harder_challenge.mp4) -- video showing my output for the input video called challenge_video.mp4 
+* [advanced_lane_findingchallenge.mp4](./advanced_lane_finding_harder_challenge.mp4) -- video showing my output for the input video called challenge_video.mp4 
 
 These videos can be executed by running the following command:
 ```sh
