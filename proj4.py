@@ -35,9 +35,6 @@ class Line():
         self.num_to_avg=5
         self.num_pts=720
         self.detected = False
-        # x values of the last n fits of the line
-#        self.recent_xfitted = np.array([self.num_pts],dtype=np.int32)
-        #average x values of the fitted line over the last n iterations
         self.bestx = np.array([self.num_to_avg,self.num_pts],dtype=np.int32)
         #polynomial coefficients averaged over the last n iterations
         self.best_fit = None
@@ -47,14 +44,7 @@ class Line():
         self.current_real_world_fit=[]
         #radius of curvature of the line in some units
         self.radius_of_curvature = None
-        #distance in meters of vehicle center from the line
-#        self.line_base_pos = None
-        #difference in fit coefficients between last and new fits
         self.diffs = np.array([0,0,0], dtype='float')
-#        #x values for detected line pixels
-#        self.allx = None
-#        #y values for detected line pixels
-#        self.ally = None
 
     def track_fit(self, h, fit, real_world_fit):
         # add a found fit to the line, up to n
@@ -73,20 +63,19 @@ class Line():
                 self.current_fit.append(fit)
                 self.current_real_world_fit.append((real_world_fit))
                 if len(self.current_fit) > self.num_to_avg:
-                    # throw out old fits, keep newest n
                     self.current_fit = self.current_fit[len(self.current_fit) - self.num_to_avg:]
                     self.current_real_world_fit = self.current_real_world_fit[len(self.current_real_world_fit) - self.num_to_avg:]
                 self.best_fit = np.average(self.current_fit, axis=0)
                 self.best_real_world_fit = np.average(self.current_real_world_fit, axis=0)
-        # or remove one from the history, if not found
+        # remove a fit from the history if we are unable to find a fit this time
         else:
             self.detected = False
             if len(self.current_fit) > 0:
-                # throw out oldest fit
+                # throw out the oldest fit
                 self.current_fit = self.current_fit[:len(self.current_fit) - 1]
                 self.current_real_world_fit=self.current_real_world_fit[:len(self.current_real_world_fit) - 1]
             if len(self.current_fit) > 0:
-                # if there are still any fits in the queue, best_fit is their average
+                # Calculate the average of the remaining fits
                 self.best_fit = np.average(self.current_fit, axis=0)
                 self.best_real_world_fit = np.average(self.current_real_world_fit, axis=0)
     def invalidate_last_fit(self):
@@ -139,32 +128,38 @@ def process_3files_in_directory(directory_name, proc, descr1, descr2):
         titles3.append(fname + descr2)
     return imgs, titles1, processed_imgs1, titles2, processed_imgs2, titles3
 
+# This function is used for data visualization
 def maskedWarpedImage(img):
     kernel_size = 5
     blurred_img = cv2.GaussianBlur(img, (kernel_size, kernel_size), 0)
     masked_img, warped_img = get_masked_warped_image(blurred_img)
     return masked_img, warped_img
 
+# This function is used for data visualization
 def warpPerspective(img):
     imshape = img.shape
     warped_img = cv2.warpPerspective(img, M, (imshape[1], imshape[0]))
     return warped_img
 
+# This function is used for data visualization
 def get_perspective_transform_images(directory_name):
     proc=warpPerspective
     imgs, titles1, warped_imgs, titles2=process_2files_in_directory(directory_name,proc,"warped")
     return imgs,titles1,warped_imgs,titles2
 
+# This function is used for data visualization
 def get_undistorted_images(directory_name):
     proc=undistort
     imgs, titles1, undistorted_imgs, titles2 = process_2files_in_directory(directory_name, proc, "undistorted")
     return imgs,titles1,undistorted_imgs,titles2
 
+# This function is used for data visualization
 def get_masked_warped_images(directory_name):
     proc=maskedWarpedImage
     imgs, titles1, masked_imgs, titles2, warped_imgs, titles3=process_3files_in_directory(directory_name, proc,"masked","warped")
     return imgs, titles1, masked_imgs, titles2, warped_imgs, titles3
 
+# function is used to draw figures for data visualization
 def show_images_side_by_side(img1,title1,img2,title2,is_gray=False):
     fig = plt.figure(figsize=(6, 4))
     subfig1 = fig.add_subplot(1, 2, 1)
@@ -180,6 +175,7 @@ def show_images_side_by_side(img1,title1,img2,title2,is_gray=False):
     plt.show()
     return subfig1, subfig2
 
+# function is used to draw figures for data visualization
 def show_array_2images_side_by_side(imgs1,titles1,imgs2,titles2,is_gray=False):
     assert(len(imgs1)==len(imgs2))
     assert(len(imgs1)==len(titles1))
@@ -205,6 +201,7 @@ def show_array_2images_side_by_side(imgs1,titles1,imgs2,titles2,is_gray=False):
     plt.show()
     return fig
 
+# function is used to draw figures for data visualization
 def show_array_3images_side_by_side(imgs1,titles1,imgs2,titles2,imgs3,titles3,is_gray=False):
     assert(len(imgs1)==len(imgs2))
     assert (len(imgs2) == len(imgs3))
@@ -237,6 +234,7 @@ def show_array_3images_side_by_side(imgs1,titles1,imgs2,titles2,imgs3,titles3,is
     plt.show()
     return fig
 
+# function is used to draw figures for data visualization
 def view_histogram(data,plot_name,file_name):
     fig = plt.figure(figsize=(8, 5))
     plt.plot(data)
@@ -246,6 +244,7 @@ def view_histogram(data,plot_name,file_name):
     plt.show()
     fig.savefig(file_name,bbox_inches='tight')
 
+# function is used to draw figures for data visualization
 def draw_windows(img,binary_warped,title,filename):
     left_fit, right_fit, left_real_world, right_real_world, rectangles = get_left_and_right_lane_fits(img,
         binary_warped)
@@ -298,10 +297,12 @@ def draw_windows(img,binary_warped,title,filename):
     plt.show()
     fig.savefig(filename,bbox_inches='tight')
 
+# function is used to draw figures for data visualization
 def visualize_search_windows(img,warped_img,title,filename):
     left_fit, right_fit, left_real_world, right_real_world, rectangles = get_left_and_right_lane_fits(img,warped_img)
     out_img=draw_windows(img,warped_img,title,filename)
 
+# get the channels used for our color thresholds
 def convert_image2(img):
     hls = cv2.cvtColor(img, cv2.COLOR_RGB2HLS)
     luv = cv2.cvtColor(img, cv2.COLOR_RGB2Luv)
@@ -449,7 +450,6 @@ def apply_thresholds2(img_unwarp):
     s_channel, l_channel, b_channel = convert_image2(img_unwarp)
 # we ignore the S channel
     l_channel = l_channel * (255 / np.max(l_channel))
-# Scale if yellow is present in the image
     if np.max(b_channel) > 175:
         b_channel = b_channel * (255 / np.max(b_channel))
     l_output = np.zeros_like(l_channel)
@@ -472,9 +472,9 @@ def calculate_gradiant(img):
     dir_binary = dir_threshold(img, sobel_kernel=kernel_size, thresh=(.65, 1.05))
     # Combine all the thresholding information
     combined = np.zeros_like(dir_binary)
-#    combined[((gradx == 1) & (grady == 1)) | ((mag_binary == 1) & (dir_binary == 1))] = 1
+    combined[((gradx == 1) & (grady == 1)) | ((mag_binary == 1) & (dir_binary == 1))] = 1
 #    combined[((gradx == 1) | (grady == 1))] = 1
-    combined[(gradx == 1)] = 1
+#    combined[(gradx == 1)] = 1
     return combined
 
 def undistort (img):
@@ -551,10 +551,7 @@ def get_masked_warped_image(img):
     img=undistort(img)
     masked_img = region_of_interest(img, vertices)
     warped_img = cv2.warpPerspective(masked_img, M, (imshape[1], imshape[0]))
-#    warped_img = cv2.warpPerspective(img, M, (imshape[1], imshape[0]))
     binary_warped_img=apply_thresholds2(warped_img)
-#    binary_warped_img = region_of_interest(binary_warped_img, vertices)
-#    binary_warped_img = region_of_interest_with_transform(binary_warped_img, vertices)
     return warped_img, binary_warped_img
 
 def draw_lane_on_img(original_img, binary_img, left_path_coordinates, right_path_coordinates, Minv):
@@ -601,13 +598,6 @@ def get_left_and_right_lane_fits(img,warped_img):
     two_third_point = np.int(2*histogram.shape[0] // 3)
     leftx_base = np.argmax(histogram[:one_third_point])
     rightx_base = np.argmax(histogram[two_third_point:]) + two_third_point
-#    quarter_point = np.int(midpoint // 2)
-    # Previously the left/right base was the max of the left/right half of the histogram
-    # this changes it so that only a quarter of the histogram (directly to the left/right) is considered
-#    leftx_base = np.argmax(histogram[quarter_point:midpoint]) + quarter_point
-#    rightx_base = np.argmax(histogram[midpoint:(midpoint + quarter_point)]) + midpoint
-#    leftx_base = np.argmax(histogram[:midpoint])
-#    rightx_base = np.argmax(histogram[midpoint:]) + midpoint
 
     # Set height of windows
     window_height = warped_img.shape[0] // nwindows
@@ -627,7 +617,6 @@ def get_left_and_right_lane_fits(img,warped_img):
     right_lane_inds = []
 
     rectangles = []
-
     # Step through the windows one by one
     for window in range(nwindows):
         # Identify window boundaries in x and y (and right and left)

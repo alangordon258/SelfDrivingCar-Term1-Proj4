@@ -4,9 +4,8 @@
 
 Overview
 ---
-![alt text](./title_image.jpg)
 This repository contains my submission for the Advanced Lane Finding Project, which is part of the curriculum for term 1 of the Udacity Self-Driving Car Nanodegree Program. The goal of this project is to write a software pipeline to identify the lane boundaries in a video from a front-facing camera on a car.
-
+![alt text](./title_image.jpg)
 The steps of this project are the following:
 
 * Compute the camera calibration matrix and distortion coefficients given a set of chessboard images.
@@ -125,7 +124,7 @@ My final results look good on the required video.
 It's pretty close to perfect.
 On the challenge video, it's fair. The lanes are correct most of the time, but there are some places, such as under the bridge where the lines are lost. I would love to have been able to spend more time on the project, but working full time that was not possible. See this video below.
 [![alt text](./challenge_video_image.png)](./advanced_lane_finding_challenge.mp4) 
-My logic did not work well on the harder challenge, so I did not include the results here, but I would like to add that later.
+My logic did not work well on the harder challenge, so I did not include the results here, but I would like to work more on it later.
 ### To Blur Or Not To Blur
 I did investigate whether adding a slight gaussian blur would improve the situation. Interestingly I found out that it depends. On the required video, it did not make much of a difference. The video shown above was generated using a gaussian blur with a kernel size of 3. However, on the challenge video it made a significant difference. I used a kernel size of 5 to generate the video shown above and using a kernel size of 3 or no blur at all actually made the behavior on this video worse. I believe that is the case because there is less contrast (because of the lighter road surface) and more variation in lighting conditions in the challenge video.
 ### Conclusions
