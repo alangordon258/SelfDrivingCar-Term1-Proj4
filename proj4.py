@@ -355,7 +355,7 @@ def calibrate_using_chessboard_images(sizex,sizey,directory_wildcard_filename):
     ret, mtx, dist, rvecs, tvecs = cv2.calibrateCamera(objpoints, imgpoints, gray.shape[::-1], None, None)
     return ret, mtx, dist, rvecs, tvecs, orig_imgs, titles1, processed_imgs, titles2
 
-def mag_thresh(img, sobel_kernel=3, mag_thresh=(0, 255)):
+def mag_thresh(img, sobel_kernel=5, mag_thresh=(25, 255)):
     # Convert to grayscale
     single_channel_img = convert_image3(img)
     # Take both Sobel x and y gradients
@@ -372,7 +372,7 @@ def mag_thresh(img, sobel_kernel=3, mag_thresh=(0, 255)):
     # Return the binary image
     return binary_output
 
-def dir_threshold(img, sobel_kernel=3, thresh=(0, np.pi/2)):
+def dir_threshold(img, sobel_kernel=5, thresh=(0, np.pi/4)):
     # Grayscale
     single_channel_img = convert_image3(img)
     # Calculate the x and y gradients
@@ -386,7 +386,7 @@ def dir_threshold(img, sobel_kernel=3, thresh=(0, np.pi/2)):
     # Return the binary image
     return binary_output
 
-def abs_sobel_thresh(img, orient='x', sobel_kernel=3, thresh=(0, 255)):
+def abs_sobel_thresh(img, orient='x', sobel_kernel=5, thresh=(25, 255)):
     # Convert to grayscale
     single_channel_img = convert_image3(img)
     # Apply x or y gradient with the OpenCV Sobel() function
@@ -434,9 +434,9 @@ def apply_thresholds(img):
     grad_binary=calculate_gradiant(img)
     color_binary=color_threshold(img)
     combined_binary = np.zeros_like(grad_binary)
-#    combined_binary[(grad_binary == 1) | (color_binary == 1)] = 1
+    combined_binary[(grad_binary == 1) | (color_binary == 1)] = 1
 #    combined_binary[(color_binary == 1)] = 1
-    combined_binary[(grad_binary == 1)] = 1
+#    combined_binary[(grad_binary == 1)] = 1
     return combined_binary
 
 def apply_thresholds2(img_unwarp):
@@ -463,16 +463,17 @@ def apply_thresholds2(img_unwarp):
     return combined
 
 def calculate_gradiant(img):
-    kernel_size=5
+    kernel_size=7
 
     # Run the function
-    gradx = abs_sobel_thresh(img, orient='x', sobel_kernel=kernel_size, thresh=(10, 255))
-    grady = abs_sobel_thresh(img, orient='y', sobel_kernel=kernel_size, thresh=(60, 255))
-    mag_binary = mag_thresh(img, sobel_kernel=kernel_size, mag_thresh=(40, 255))
+    gradx = abs_sobel_thresh(img, orient='x', sobel_kernel=kernel_size, thresh=(25, 255))
+    grady = abs_sobel_thresh(img, orient='y', sobel_kernel=kernel_size, thresh=(25, 255))
+    mag_binary = mag_thresh(img, sobel_kernel=kernel_size, mag_thresh=(25, 255))
     dir_binary = dir_threshold(img, sobel_kernel=kernel_size, thresh=(.65, 1.05))
     # Combine all the thresholding information
     combined = np.zeros_like(dir_binary)
-    combined[((gradx == 1) & (grady == 1)) | ((mag_binary == 1) & (dir_binary == 1))] = 1
+#    combined[((gradx == 1) | (grady == 1)) | ((mag_binary == 1) & (dir_binary == 1))] = 1
+    combined[((gradx == 1) ) | ((mag_binary == 1) )] = 1
 #    combined[((gradx == 1) | (grady == 1))] = 1
 #    combined[(gradx == 1)] = 1
     return combined
@@ -549,9 +550,11 @@ def get_masked_warped_image(img):
     vertices = np.array([[(9 / 20 * imshape[1], 6 / 10 * imshape[0]), (11 / 20 * imshape[1], 6 / 10 * imshape[0]),
                           (9 / 10 * imshape[1], imshape[0]), (1 / 10 * imshape[1], imshape[0])]], dtype=np.int32)
     img=undistort(img)
-    masked_img = region_of_interest(img, vertices)
-    warped_img = cv2.warpPerspective(masked_img, M, (imshape[1], imshape[0]))
-    binary_warped_img=apply_thresholds2(warped_img)
+#    masked_img = region_of_interest(img, vertices)
+#    warped_img = cv2.warpPerspective(masked_img, M, (imshape[1], imshape[0]))
+    warped_img = cv2.warpPerspective(img, M, (imshape[1], imshape[0]))
+    binary_warped_img=apply_thresholds(warped_img)
+#    binary_warped_img = region_of_interest_with_transform(binary_warped_img, vertices)
     return warped_img, binary_warped_img
 
 def draw_lane_on_img(original_img, binary_img, left_path_coordinates, right_path_coordinates, Minv):
@@ -860,7 +863,7 @@ def run_sanity_check(img,left_fit_coeffs, right_fit_coeffs,left_real_world, righ
     return check_passed,l_fit_x_int,r_fit_x_int,x_int_diff, curvatures
 
 def do_pipeline(img,img_index):
-    kernel_size = 5
+    kernel_size = 3
     left_poly_coeffs = None
     right_poly_coeffs = None
     blurred_img = cv2.GaussianBlur(img, (kernel_size, kernel_size), 0)
